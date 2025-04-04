@@ -37,7 +37,7 @@ async function run() {
 
     const booksCollection = db.collection("books")
 
-    //
+    // create a book
     app.post("/books", async (req, res) =>{
       const bookData = req.body;
       console.log(bookData)
@@ -48,6 +48,9 @@ async function run() {
         res.status(500).json({ error: err.message });
       }
     })
+// get all books
+
+
     
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
