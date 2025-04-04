@@ -7,16 +7,14 @@ const port = process.env.PORT || 3000
 //const app = express();
 
 app.use(cors());
-app.use(express.json()); 
+app.use(express.json());
 
-console.log(process.env.MONGODB_URL) 
+console.log(process.env.MONGODB_URL)
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
-
-
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const uri="mongodb+srv://Admin:ANDA001@book.5il3a.mongodb.net/book?appName=book"
+const uri = "mongodb+srv://Admin:ANDA001@book.5il3a.mongodb.net/book?appName=book"
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -31,14 +29,14 @@ async function run() {
     await client.connect();
     // Send a ping to confirm a successful connection
 
-    //create db and collections
+
     //create db and collections
     const db = client.db("Gyangriho-management-system")
 
     const booksCollection = db.collection("books")
 
     // create a book
-    app.post("/books", async (req, res) =>{
+    app.post("/books", async (req, res) => {
       const bookData = req.body;
       console.log(bookData)
       try {
@@ -48,10 +46,16 @@ async function run() {
         res.status(500).json({ error: err.message });
       }
     })
-// get all books
+    // get all books
+    app.get("/books", async (req, res) => {
+      try {
+        const book = await booksCollection.find().toArray();
+        res.status(201).json({ book })
+      } catch (error) {
+        res.status(500).json({ error: error.message })
+      }
+    })
 
-
-    
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
