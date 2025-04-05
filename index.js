@@ -48,13 +48,70 @@ async function run() {
     })
     // get all books
     app.get("/books", async (req, res) => {
+      const {
+          page,
+          limit,
+          genre,
+          minYear,
+          maxYear,
+          author,
+          minPrice,
+          maxPrice,
+          sortBy,
+          order,
+          search,
+        } = req.query
+
       try {
-        const book = await booksCollection.find().toArray();
-        res.status(201).json({ book })
+
+        const currentPage = Math.max(1, parseInt(page) || 1);
+        const perPage = parseInt(limit) || 10;
+        const skip = (currentPage - 1) * perPage;
+
+        const filter ={};
+        if (search) {
+          filter.$or = [
+            { title: { $regex: search, $options: "i" } },
+            { description: { $regex: search, $options: "i" } }
+          ]
+        }
+        if (genre) filter.genre = genre;
+
+        if (minYear || maxYear) {
+          filter.publishedYear = {
+            ...(minYear && { $gte: parseInt(minYear) }),
+            ...(maxYear && { $lte: parseInt(maxYear) })
+          }
+          }
+
+          if (author) filter.author = author;
+          if (minPrice || maxPrice) {
+            filter.price = {
+              ...(minPrice && { $gte: parseFloat(minPrice) }),
+              ...(maxPrice && { $lte: parseFloat(maxPrice) })
+            }
+          }
+          // Sort options
+        const sortOptions = { [sortBy || 'title']: order === 'desc' ? -1 : 1 };
+         // Execute queries in parallel for better performance
+         const [books, totalBooks] = await Promise.all([
+          booksCollection
+            .find(filter)
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(perPage)
+            .toArray(),
+          booksCollection.countDocuments(filter)
+        ]);
+
+
+
+       // const book = await booksCollection.find(filter).toArray();
+        res.status(201).json({  books, totalBooks, currentPage, totalPages: Math.ceil(totalBooks / perPage) })
       } catch (error) {
         res.status(500).json({ error: error.message })
       }
-    })
+  })
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
