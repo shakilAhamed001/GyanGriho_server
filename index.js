@@ -11,7 +11,7 @@ app.use(express.json());
 
 console.log(process.env.MONGODB_URL)
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const uri = "mongodb+srv://Admin:ANDA001@book.5il3a.mongodb.net/book?appName=book"
@@ -28,7 +28,6 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
-
 
     //create db and collections
     const db = client.db("Gyangriho-management-system")
@@ -48,19 +47,7 @@ async function run() {
     })
     // get all books
     app.get("/books", async (req, res) => {
-      const {
-          page,
-          limit,
-          genre,
-          minYear,
-          maxYear,
-          author,
-          minPrice,
-          maxPrice,
-          sortBy,
-          order,
-          search,
-        } = req.query
+      const {page,limit,genre,minYear,maxYear,author,minPrice,maxPrice,sortBy,order,search,} = req.query
 
       try {
 
@@ -104,13 +91,48 @@ async function run() {
           booksCollection.countDocuments(filter)
         ]);
 
-
-
        // const book = await booksCollection.find(filter).toArray();
         res.status(201).json({  books, totalBooks, currentPage, totalPages: Math.ceil(totalBooks / perPage) })
       } catch (error) {
         res.status(500).json({ error: error.message })
       }
+  })
+
+   // Get Book by ID (GET)
+   app.get("/books/:id", async (req, res) => {
+    const {id} =req.params;
+     console.log(id)
+    try {
+      const book = await booksCollection.findOne({_id: new ObjectId(id)});
+      if (!book) return res.status(404).json({ message: "Book not found" });
+      res.json(book);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  })
+
+  // Update Book (PUT)
+  app.put("/books/:id", async (req, res) => {
+    try {
+      const updatedBook = await booksCollection.updateOne(
+        { _id: new ObjectId(req.params.id) },
+        { $set: req.body }
+      );
+      res.json(updatedBook);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  })
+
+  // Delete Book (DELETE)
+  app.delete("/books/:id", async (req, res) => {
+    try {
+      await booksCollection.deleteOne({_id: new ObjectId(req.params.id),
+      });
+      res.json({ message: "Book deleted" });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   })
 
     await client.db("admin").command({ ping: 1 });
