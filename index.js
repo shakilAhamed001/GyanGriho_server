@@ -4,7 +4,6 @@ require('dotenv').config()
 const cors = require("cors");
 const port = process.env.PORT || 3000
 
-//const app = express();
 
 app.use(cors());
 app.use(express.json());
@@ -25,9 +24,8 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
+    // Connect the client to the server	
     await client.connect();
-    // Send a ping to confirm a successful connection
 
     //create db and collections
     const db = client.db("Gyangriho-management-system")
@@ -59,7 +57,7 @@ async function run() {
         if (search) {
           filter.$or = [
             { title: { $regex: search, $options: "i" } },
-            { description: { $regex: search, $options: "i" } }
+            { description: { $regex: search, $options: "i" } } 
           ]
         }
         if (genre) filter.genre = genre;
@@ -135,6 +133,7 @@ async function run() {
     }
   })
 
+  // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
