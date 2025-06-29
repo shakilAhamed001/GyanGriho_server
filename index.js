@@ -33,13 +33,33 @@ async function run() {
     const db = client.db("Gyangriho-management-system")
 
     const booksCollection = db.collection("books")
-
+    const cartCollection = db.collection("cart") 
     // create a book
     app.post("/books", async (req, res) => {
       const bookData = req.body;
       console.log(bookData)
       try {
         const book = await booksCollection.insertOne(req.body);
+        res.status(201).json(book);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    })
+    // get all books in cart
+    app.get("/cart", async (req, res) => {
+      try {
+        const cart = await cartCollection.find({}).toArray();
+        res.status(200).json(cart);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    })
+    
+    app.post("/cart", async (req, res) => {
+      const bookData = req.body;
+      console.log(bookData)
+      try {
+        const book = await cartCollection.insertOne(req.body);
         res.status(201).json(book);
       } catch (err) {
         res.status(500).json({ error: err.message });
@@ -114,10 +134,7 @@ async function run() {
   // Update Book (PUT)
   app.put("/books/:id", async (req, res) => {
     try {
-      const updatedBook = await booksCollection.updateOne(
-        { _id: new ObjectId(req.params.id) },
-        { $set: req.body }
-      );
+      const updatedBook = await booksCollection.updateOne( { _id: new ObjectId(req.params.id) }, { $set: req.body } );
       res.json(updatedBook);
     } catch (err) {
       res.status(500).json({ error: err.message });
