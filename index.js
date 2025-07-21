@@ -2,6 +2,8 @@ const express = require('express')
 const app = express()
 require('dotenv').config()
 const cors = require("cors");
+
+
 const port = process.env.PORT || 3000
 
 app.use(cors());
@@ -119,17 +121,24 @@ async function run() {
   })
 
    // Get Book by ID (GET)
-   app.get("/books/:id", async (req, res) => {
-    const {id} =req.params;
-     console.log(id)
-    try {
-      const book = await booksCollection.findOne({_id: new ObjectId(id)});
-      if (!book) return res.status(404).json({ message: "Book not found" });
-      res.json(book);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
+// DELETE a cart item by ID
+app.delete("/cart/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log("Received delete request for cart item ID:", id);
+
+    const result = await cartCollection.deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 1) {
+      res.status(200).json({ message: "Cart item deleted" });
+    } else {
+      res.status(404).json({ error: "Item not found" });
     }
-  })
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
   // Update Book (PUT)
   app.put("/books/:id", async (req, res) => {
